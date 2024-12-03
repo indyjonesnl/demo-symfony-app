@@ -23,7 +23,6 @@ COPY --link ./templates/ /app/templates/
 RUN --mount=type=bind,from=composer/composer:2-bin,source=/composer,target=/usr/local/bin/composer \
     COMPOSER_ALLOW_SUPERUSER=1 \
     composer install \
-    --no-autoloader \
     --no-cache \
     --no-dev \
     --no-progress \
