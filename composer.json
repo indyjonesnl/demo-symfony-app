@@ -1,0 +1,53 @@
+{
+    "name": "indyjonesnl/demo-symfony-app",
+    "description": "Just a simple Symfony demo app I use to test ingress and such",
+    "type": "project",
+    "require": {
+        "php": "^8.4",
+        "symfony/asset": "^7.2",
+        "symfony/asset-mapper": "^7.2",
+        "symfony/dotenv": "^7.2",
+        "symfony/flex": "^2.4",
+        "symfony/framework-bundle": "^7.2",
+        "symfony/runtime": "^7.2",
+        "symfony/string": "^7.2",
+        "symfony/twig-bundle": "^7.2",
+        "symfony/yaml": "^7.2",
+        "symfonycasts/tailwind-bundle": "^0.6.1",
+        "twig/extra-bundle": "^2.12|^3.0",
+        "twig/twig": "^2.12|^3.0"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "symfony/flex": true,
+            "symfony/runtime": true
+        },
+        "sort-packages": true
+    },
+    "scripts": {
+        "auto-scripts": {
+            "cache:clear": "symfony-cmd",
+            "assets:install %PUBLIC_DIR%": "symfony-cmd",
+            "importmap:install": "symfony-cmd"
+        },
+        "post-install-cmd": [
+            "@auto-scripts"
+        ]
+    },
+    "replace": {
+        "symfony/polyfill-php72": "*",
+        "symfony/polyfill-php73": "*",
+        "symfony/polyfill-php74": "*",
+        "symfony/polyfill-php80": "*",
+        "symfony/polyfill-php81": "*",
+        "symfony/polyfill-php82": "*",
+        "symfony/polyfill-php83": "*",
+        "symfony/polyfill-php84": "*"
+    }
+}

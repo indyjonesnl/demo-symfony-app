@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+{% block body %}
+    <div>
+        <p class="mt-2 text-pretty text-4xl font-semibold tracking-tight dark:text-white text-gray-900 sm:text-5xl">
+            Hello, World!
+        </p>
+        <table class="table">
+            {% for key, value in values %}
+                <tr class="dark:text-white"><td>{{ key }}</td><td>{{ value }}</td></tr>
+            {% endfor %}
+        </table>
+
+        <p class="dark:text-white">Asset serving demo</p>
+        <img alt="Woman surrounded by books"
+             src="{{ asset('images/unsplash_240.jpg') }}"
+             srcset="{{ asset('images/unsplash_240.jpg') }} 240w,
+                {{ asset('images/unsplash_480.jpg') }} 480w,
+                {{ asset('images/unsplash_720.jpg') }} 720w,
+                {{ asset('images/unsplash_960.jpg') }} 960w,
+                {{ asset('images/unsplash_1280.jpg') }} 1280w,
+                {{ asset('images/unsplash_1920.jpg') }} 1920w,
+                {{ asset('images/unsplash_4251.jpg') }} 4251w"
+             sizes="(max-width: 480px) 240px,
+             (max-width:720px) 480px,
+             (max-width: 960px) 720px,
+             (max-width: 1280px) 960px,
+             (max-width: 1920px) 1280px,
+             (max-width: 2400px) 1920px,
+             (max-width: 4251px) 2400px,
+             4251px"
+        />
+    </div>
+{% endblock %}
