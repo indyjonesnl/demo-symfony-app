@@ -33,6 +33,13 @@ spec:
           ports:
             - containerPort: 8080
               name: http
+          resources:
+            limits:
+              cpu: 250m
+              memory: 128Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
         - name: php
           image: ghcr.io/indyjonesnl/demo-symfony-app:main
           lifecycle:
@@ -49,6 +56,13 @@ spec:
           ports:
             - containerPort: 9000
               name: fcgi
+          resources:
+            limits:
+              cpu: 250m
+              memory: 250Mi
+            requests:
+              cpu: 10m
+              memory: 125Mi
       volumes:
         - name: tmp
           emptyDir: {}

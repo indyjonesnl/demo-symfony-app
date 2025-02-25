@@ -7,29 +7,133 @@ metadata:
     app.kubernetes.io/name: symfony-demo-app
 data:
   default.conf: |
+    # limit the number of connections per single IP
+    limit_conn_zone $binary_remote_addr zone=conn_limit_per_ip:10m;
+    
+    # limit the number of requests for a given session
+    limit_req_zone $binary_remote_addr zone=req_limit_per_ip:10m rate=5r/s;
+    
     server {
       server_name symfony-demo;
       root /app/public;
       listen 8080;
       server_tokens off;
-  
+      aio on;
+      aio_write on;
+      sendfile on;
+      
+      limit_conn conn_limit_per_ip 10;
+      limit_req zone=req_limit_per_ip burst=10 nodelay;
+      
+      # send headers in one piece, it is better than sending them one by one
+      tcp_nopush on;
+      
+      # don't buffer data sent, good for small data bursts in real time
+      tcp_nodelay on;
+      
+      # allow the server to close connection on non responding client, this will free up memory
+      reset_timedout_connection on;
+      
+      # request timed out -- default 60
+      client_body_timeout 10s;
+      
+      # how long to wait for the client to send a request header -- for testing environment
+      client_header_timeout 10s;
+      
+      # if client stop responding, free up memory -- default 60
+      send_timeout 10s;
+      
+      # server will close connection after this time -- default 75
+      keepalive_timeout 30s;
+      
+      # number of requests client can make over keep-alive -- for testing environment
+      keepalive_requests 100000;
+      
+      # if the request body size is more than the buffer size, then the entire (or partial)
+      # request body is written into a temporary file
+      client_body_buffer_size 128k;
+      
+      # buffer size for reading client request header -- for testing environment
+      client_header_buffer_size 3m;
+      
+      # maximum number and size of buffers for large headers to read from client request
+      large_client_header_buffers 4 256k;
+      
+      # reduce the data that needs to be sent over network -- for testing environment
+      gzip on;
+      gzip_min_length 10240;
+      gzip_comp_level 6;
+      gzip_vary on;
+      gzip_disable msie6;
+      gzip_proxied expired no-cache no-store private auth;
+      gzip_types
+        # text/html is always compressed by HttpGzipModule
+        text/css
+        text/javascript
+        text/xml
+        text/plain
+        text/x-component
+        application/javascript
+        application/x-javascript
+        application/json
+        application/xml
+        application/rss+xml
+        application/atom+xml
+        font/truetype
+        font/opentype
+        application/vnd.ms-fontobject
+        image/svg+xml;
+      
+      fastcgi_buffer_size 8k;
+      fastcgi_send_timeout 30s;
+      
       location / {
-          try_files $uri /index.php$is_args$args;
+        # try to serve file directly, fallback to index.php
+        try_files $uri /index.php$is_args$args;
       }
-  
+      
+      # optionally disable falling back to PHP script for the asset directories;
+      # nginx will return a 404 error when files are not found instead of passing the
+      # request to Symfony (improves performance but Symfony's 404 page is not displayed)
+      # location /bundles {
+      #     try_files $uri =404;
+      # }
+      
       location ~ ^/index\.php(/|$) {
-          fastcgi_pass localhost:9000;
-          fastcgi_split_path_info ^(.+\.php)(/.*)$;
-          include fastcgi_params;
-          fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-          fastcgi_param DOCUMENT_ROOT $document_root;
-          internal;
+        include fastcgi_params;
+        fastcgi_split_path_info ^(.+\.php)(/.*)$;
+        fastcgi_index index.php;
+        
+        fastcgi_pass_header $http_x_forwarded_proto;
+        fastcgi_pass_header $http_x_forwarded_for;
+        fastcgi_pass_header $http_x_cloud_trace_context;
+        
+        # When you are using symlinks to link the document root to the
+        # current version of your application, you should pass the real
+        # application path instead of the path to the symlink to PHP
+        # FPM.
+        # Otherwise, PHP's OPcache may not properly detect changes to
+        # your PHP files (see https://github.com/zendtech/ZendOptimizerPlus/issues/126
+        # for more information).
+        # Caveat: When PHP-FPM is hosted on a different machine from nginx
+        #         $realpath_root may not resolve as you expect! In this case try using
+        #         $document_root instead.
+        fastcgi_param DOCUMENT_ROOT $document_root;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_pass localhost:9000;
+        
+        # Prevents URIs that include the front controller. This will 404:
+        # http://example.com/index.php/some-path
+        # Remove the internal directive to allow URIs like this
+        internal;
       }
-  
+      
+      # return 404 for all other php files not matching the front controller
+      # this prevents access to other php files you don't want to be accessible.
       location ~ \.php$ {
-          return 404;
+        return 404;
       }
-  
+      
       error_log stderr warn;
-      access_log /dev/stdout main;
+      access_log off;
     }

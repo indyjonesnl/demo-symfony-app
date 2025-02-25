@@ -21,14 +21,17 @@ final class HomeController extends AbstractController
             'has_previous_session' => $request->hasPreviousSession() ? 'Yes' : 'No',
             'host' => $request->getHost(),
             'host_name' => gethostname(),
+            'server_ip' => $request->server->get('SERVER_ADDR'),
+            'server_software' => $request->server->get('SERVER_SOFTWARE'),
             'is_from_trusted_proxy' => $request->isFromTrustedProxy() ? 'Yes' : 'No',
             'is_secure' => $request->isSecure() ? 'Yes' : 'No',
             'languages' => implode(',', $request->getLanguages()),
             'locale' => $request->getLocale(),
             'memory_limit' => ini_get('memory_limit'),
-            'num_cpus' => $this->getNumCpus(),
+            'num_cpus' => $this->getNumCpus() ?? '?',
             'php_sapi' => php_sapi_name(),
             'preferred_language' => $request->getPreferredLanguage(),
+            'protocol_version' => $request->getProtocolVersion(),
             'scheme' => $request->getScheme(),
         ]]);
     }
@@ -43,27 +46,31 @@ final class HomeController extends AbstractController
         return new Response($phpInfo);
     }
 
-    #[Route('/benchmark', methods: [Request::METHOD_GET])]
-    public function benchmark(): Response
-    {
-        return new Response();
-    }
-
     private function getCPU(): string
     {
         $name = php_uname('m');
         // workaround bug
-        if(strlen($name) > 20 AND stripos($name,'linux') !== false){
+        if (strlen($name) > 20 and stripos($name, 'linux') !== false) {
             $name = `uname -m`;
         }
         return trim($name);
     }
 
-    private function getNumCpus(): int
+    private function getNumCpus(): ?int
     {
-        $cpuInfo = file_get_contents('/proc/cpuinfo');
-        preg_match_all('/^processor/m', $cpuInfo, $matches);
+        try {
+            $cpuInfo = file_get_contents('/proc/cpuinfo');
+            preg_match_all('/^processor/m', $cpuInfo, $matches);
 
-        return count($matches[0]);
+            return count($matches[0]);
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    #[Route('/healthz', methods: [Request::METHOD_GET], stateless: true)]
+    public function healthz(): Response
+    {
+        return new Response();
     }
 }
