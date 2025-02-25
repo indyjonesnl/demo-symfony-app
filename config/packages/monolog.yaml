@@ -38,6 +38,10 @@ when@test:
                 level: debug
 
 when@prod:
+    services:
+        GoogleCloudLoggingFormatter:
+            class: Monolog\Formatter\GoogleCloudLoggingFormatter
+
     monolog:
         handlers:
             main:
@@ -50,7 +54,7 @@ when@prod:
                 type: stream
                 path: php://stderr
                 level: debug
-                formatter: Monolog\Formatter\GoogleCloudLoggingFormatter
+                formatter: GoogleCloudLoggingFormatter
             console:
                 type: console
                 process_psr_3_messages: false
@@ -59,4 +63,4 @@ when@prod:
                 type: stream
                 channels: [deprecation]
                 path: php://stderr
-                formatter: Monolog\Formatter\GoogleCloudLoggingFormatter
+                formatter: GoogleCloudLoggingFormatter
