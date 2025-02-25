@@ -56,7 +56,7 @@ FROM base AS production
 RUN --mount=type=bind,from=composer/composer:2-bin,source=/composer,target=/usr/local/bin/composer \
     mkdir -p var/cache var/log; \
     echo "<?php return ['APP_ENV' => 'prod'];" > /app/.env.local.php \
-    && COMPOSER_ALLOW_SUPERUSER=1 APP_ENV-prod \
+    && COMPOSER_ALLOW_SUPERUSER=1 APP_ENV=prod \
     composer dump-autoload \
     --classmap-authoritative \
     --no-dev; \
